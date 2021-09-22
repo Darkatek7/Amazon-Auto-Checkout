@@ -7,6 +7,7 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
 from fake_useragent import UserAgent
+import fake_useragent
 from logger import logger as l
 
 
@@ -46,9 +47,12 @@ def get_driver():
     prefs = {"enable_do_not_track": True}
     options.add_experimental_option("prefs", prefs)
 
-    ua = UserAgent()
-    userAgent = ua.random
-    options.add_argument(f'user-agent={userAgent}')
+    try:
+        ua = UserAgent()
+        userAgent = ua.random
+        options.add_argument(f'user-agent={userAgent}')
+    except fake_useragent.FakeUserAgentError:
+        pass
 
     driver = webdriver.Chrome('chromedriver', options=options)
 

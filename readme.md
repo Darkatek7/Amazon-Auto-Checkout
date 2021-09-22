@@ -1,4 +1,4 @@
-# Amazon Purchase Script 
+# Amazon Auto Checkout 
 
 # Use at your own risk. Read thoroughly
 
@@ -12,6 +12,7 @@ Notes of caution:
 Things to check for on Amazon/potential edge cases: 
 
  * Amazon 2FA (an option is to disable but this will **expose your account to security problems**)
+ * Make sure you amazon shopping cart is empty
  * **Behavior is dependent on your default shipping address and payment method. Use at your own risk**
 
 
@@ -19,7 +20,8 @@ Requirements:
 --- 
 * Python 3 
 * Python modules in `requirements.txt` 
-* [WebDriver for Chrome](https://sites.google.com/a/chromium.org/chromedriver/downloads) in same directory 
+* [Google Chrome](https://support.google.com/chrome/answer/95346?hl=en&co=GENIE.Platform%3DDesktop)
+* [WebDriver for the specific Chrome version](https://sites.google.com/chromium.org/driver/downloads?authuser=0) in same directory
 
 --- 
 
@@ -33,19 +35,29 @@ Requirements:
  5. Adds to cart 
  6. Checks out  
 
+---
+
+## Requirements
+
+ * install [Python 3](https://www.python.org/downloads/release/python-397/)
+ ```
+ py -m pip install -r requirements.txt
+ ```
 
 ---
 
 ## Copy `.env`
 
+* rename the ".env.sample" file to ".env" and edit it as you need.
+
 ```
-$ cp .env.sample .env
+cp .env.sample .env
+nano .env
 ```
 
 
 ## Run
 
 ```
-$ pip install -r requirements.txt 
-$ python3 main.py
+python3 main.py
 ```
