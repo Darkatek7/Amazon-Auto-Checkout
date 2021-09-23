@@ -18,7 +18,6 @@ def call_login(driver):
 def run_checkout(driver):
     functions.check_item_stock(driver)
     functions.add_to_cart(driver)
-    functions.print_subtotal(driver)
     functions.place_order(driver)
 
 
