@@ -41,31 +41,10 @@ def login(driver):
 
 # keeps refreshing until Item is in Stock, seller is your seller and its price is lower then your max price
 def check_item_stock(driver):
-    l.info("Refreshing page")
-    outOfStock = True
-    driver.get(ITEM_URL)
-    l.info("Finished refreshing page")
-    while(outOfStock):
-        try:
-            l.info("Checking item stock")
-            driver.find_element_by_id("outOfStock")
-            l.warn("Item is outOfStock")
-            time.sleep(randint(MIN_DELAY, MAX_DELAY))
-            driver.refresh()
-        except NoSuchElementException as e:
-            try:
-                l.info("Item is in-stock!")
-                if verify_price_within_limit(driver):
-                    outOfStock = False
-                time.sleep(randint(MIN_DELAY, MAX_DELAY))
-                driver.refresh()
-                continue
-            except NoSuchElementException as e:
-                time.sleep(randint(MIN_DELAY, MAX_DELAY))
-                driver.refresh()
-                continue
-            
-    return
+    if 'wishlist' in ITEM_URL:
+        wishlist_stock_check(driver)
+    else:
+        check_standard_item_stock(driver)
 
 # solve amazon captcha
 def validate_captcha(driver):
@@ -85,9 +64,6 @@ def verify_price_within_limit(driver):
     except Exception:
         l.error('Error verifying price: No Price shown')
         return False
-
-    l.info(f'price of item is:  {price}')
-    l.info('limit value is: {}'.format(MAX_PRICE))
 
     price = get_clean_price(price)
 
@@ -117,6 +93,9 @@ def get_clean_price(price):
 
 # adds the item to our cart
 def add_to_cart(driver):
+    if 'wishlist' in ITEM_URL:
+        return
+
     l.info("Attempting to add to cart")
     try:
         driver.find_element_by_id("add-to-cart-button").click()
@@ -155,8 +134,8 @@ def add_to_cart(driver):
     l.info("Successfully added to cart")
     driver.get(CART_URL)
 
-def place_order(driver):
-    #Purchases the item using default settings
+def standard_place_order(driver):
+    # Purchases the item using default settings
     l.info("Proceeding to checkout")
     try:
         driver.find_element_by_id("sc-buy-box-ptc-button").click()
@@ -172,6 +151,96 @@ def place_order(driver):
                 l.error("Failed to place order: {}".format(err))
                 l.info("Retrying {}".format(count))
         l.info("Page Source: {}".format(driver.page_source))
+        raise Exception("Failed to find submit order button")
+
+    except BaseException as err:
+        l.error("Failed to proceed to checkout: {}".format(err))
+    
+    raise Exception("Failed to complete checkout")
+
+def check_standard_item_stock(driver):
+    l.info("Refreshing page")
+    outOfStock = True
+    driver.get(ITEM_URL)
+    l.info("Finished refreshing page")
+    while(outOfStock):
+        try:
+            l.info("Checking item stock")
+            driver.find_element_by_id("outOfStock")
+            l.warn("Item is outOfStock")
+            time.sleep(randint(MIN_DELAY, MAX_DELAY))
+            driver.refresh()
+        except NoSuchElementException as e:
+            try:
+                l.info("Item is in-stock!")
+                if verify_price_within_limit(driver):
+                    outOfStock = False
+                time.sleep(randint(MIN_DELAY, MAX_DELAY))
+                driver.refresh()
+                continue
+            except NoSuchElementException as e:
+                time.sleep(randint(MIN_DELAY, MAX_DELAY))
+                driver.refresh()
+                continue
+            
+    return
+
+def verify_wishlist_item_price(product):
+    price = product.find_element_by_xpath(".//*[@class='a-price-whole']").text
+
+    price = price.replace(' ', '')
+    numeric_filter = filter(str.isdigit, price)
+    price = "".join(numeric_filter)
+
+    if float(price) >= MAX_PRICE: 
+        l.warn('Too Expensive.')
+        return False
+    
+    return True
+
+def wishlist_stock_check(driver):
+    # checks if any of the products in wishlist is in stock
+    l.info('Running wishlist checkout function')
+    outOfStock = True
+    driver.get(ITEM_URL)
+    while(outOfStock):
+        try:
+            products = driver.find_elements_by_xpath("//*[@class='a-spacing-none g-item-sortable']")
+
+            for product in products:
+                try:
+                    if verify_wishlist_item_price(product) == False:
+                        continue
+                    
+                    l.info("price is in range")
+                    l.info("adding to cart")
+                    product.find_element_by_xpath(".//*[@data-action='add-to-cart']").click()
+                    browser.wait_for_element_to_be_clickable("no warranty", "//*[@id='attachSiNoCoverage' or @aria-label='Close']", driver)
+                    l.info("added to cart")
+                    time.sleep(0.5)
+                    driver.get(CART_URL)
+                    outOfStock = False
+                    break
+                except:
+                    l.info('No Price or add to cart')
+                    continue
+
+            time.sleep(randint(MIN_DELAY, MAX_DELAY))
+            driver.refresh()
+        except Exception as e:
+            continue
+    return
+
+def wishlist_place_order(driver):
+    # wishlist checkout function
+    l.info('checking out item')
+    try:
+        browser.wait_for_element_to_be_clickable("checkout", "//input[@aria-labelledby='orderSummaryPrimaryActionBtn-announce']", driver)
+        browser.wait_for_element_to_be_clickable("checkout", "//input[@aria-labelledby='orderSummaryPrimaryActionBtn-announce']", driver)
+
+        if browser.wait_for_element_to_be_clickable("checkout", "//input[@name='placeYourOrder1']", driver):
+            l.success("Successfully placed order!")
+            return
         raise Exception("Failed to find submit order button")
 
     except BaseException as err:
