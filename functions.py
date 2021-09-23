@@ -151,7 +151,9 @@ def add_to_cart(driver):
                 except:
                     raise Exception("Failed to add to cart")
 
+    time.sleep(2)
     l.info("Successfully added to cart")
+    driver.get(CART_URL)
 
 def place_order(driver):
     #Purchases the item using default settings
