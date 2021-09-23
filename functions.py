@@ -20,7 +20,7 @@ MAX_PRICE = float(os.environ.get('MAX_PRICE', None))
 SHOP_URL = os.environ.get('SHOP_URL', None)
 MIN_DELAY = float(os.environ.get('MIN_DELAY', None))
 MAX_DELAY = float(os.environ.get('MAX_DELAY', None))
-RUNS_BEFORE_AGENT_SWITCH = int(os.environ.get('RUNS_BEFORE_AGENT_SWITCH', None)) 
+# RUNS_BEFORE_AGENT_SWITCH = int(os.environ.get('RUNS_BEFORE_AGENT_SWITCH', None)) 
 
 
 # is beeing called for logging you in to Amazon
@@ -46,36 +46,25 @@ def check_item_stock(driver):
     driver.get(ITEM_URL)
     l.info("Finished refreshing page")
     while(outOfStock):
-        for x in range(RUNS_BEFORE_AGENT_SWITCH):
+        try:
+            l.info("Checking item stock")
+            driver.find_element_by_id("outOfStock")
+            l.warn("Item is outOfStock")
+            time.sleep(randint(MIN_DELAY, MAX_DELAY))
+            driver.refresh()
+        except NoSuchElementException as e:
             try:
-                l.info("Checking item stock")
-                driver.find_element_by_id("outOfStock")
-                l.warn("Item is outOfStock")
+                l.info("Item is in-stock!")
+                if verify_price_within_limit(driver):
+                    outOfStock = False
                 time.sleep(randint(MIN_DELAY, MAX_DELAY))
                 driver.refresh()
+                continue
             except NoSuchElementException as e:
-                try:
-                    l.info("Item is in-stock!")
-                    if verify_price_within_limit(driver):
-                        outOfStock = False
-                    time.sleep(randint(MIN_DELAY, MAX_DELAY))
-                    driver.refresh()
-                    continue
-                except NoSuchElementException as e:
-                    time.sleep(randint(MIN_DELAY, MAX_DELAY))
-                    driver.refresh()
-                    continue
-        l.info("getting new user agent")
-        driver.close()
-        driver.quit()
-        driver = browser.get_driver()
-
-        try:
-            login(driver)
-            driver.get(ITEM_URL)
-        except Exception as e:
-            l.info('Error Could not login: {}'.format(e))
-            os.execv(sys.argv[0], sys.argv)
+                time.sleep(randint(MIN_DELAY, MAX_DELAY))
+                driver.refresh()
+                continue
+            
     return
 
 # solve amazon captcha
