@@ -16,10 +16,8 @@ def call_login(driver):
         return driver
 
 def run_checkout(driver):
-    functions.check_item_stock(driver)
     functions.add_to_cart(driver)
     functions.place_order(driver)
-
 
 if __name__ == '__main__':
     driver = browser.get_driver()
@@ -29,6 +27,14 @@ if __name__ == '__main__':
         done = False
         while(not done):
             try:
+                in_stock = functions.check_item_stock(driver)
+
+                if in_stock:
+                    driver.quit()
+                    driver = browser.get_driver()
+                    driver = call_login(driver)
+                    raise Exception("Renewed user agent")
+
                 run_checkout(driver)
                 done = True
             except KeyboardInterrupt:
