@@ -4,6 +4,16 @@ import os
 import sys
 from logger import logger as l
 
+def call_login(driver):
+    try:
+        functions.login(driver)
+    except Exception as e:
+        l.error('Error Could not login: {}'.format(e))
+        driver.quit()
+        driver = browser.get_driver()
+        call_login(driver)
+    finally:
+        return driver
 
 def run_checkout(driver):
     functions.check_item_stock(driver)
@@ -14,12 +24,7 @@ def run_checkout(driver):
 
 if __name__ == '__main__':
     driver = browser.get_driver()
-
-    try:
-        functions.login(driver)
-    except Exception as e:
-        l.error('Error Could not login: {}'.format(e))
-        os.execv(sys.argv[0], sys.argv)
+    driver = call_login(driver)
 
     try:
         done = False
