@@ -10,24 +10,6 @@ from fake_useragent import UserAgent
 import fake_useragent
 from logger import logger as l
 
-
-def open_url(url, driver):
-    l.info("opening: " + url)
-    driver.get(url)
-
-def close_driver(driver):
-    l.info("closing driver")
-    driver.close()
-    driver.quit()
-
-def click_element(name, xpath, driver): # xpath of element to click
-    l.info("clicking element: " + name)
-    try:
-        ActionChains(driver).move_to_element(driver.find_element_by_xpath(xpath)).click().perform()
-        return True
-    except NoSuchElementException:
-        return False
-
 def get_driver():
     l.info("getting driver")
     options = Options()
@@ -75,24 +57,6 @@ def element_exists_id(id, driver):
     except NoSuchElementException:
         return False
 
-def element_is_enabled(xpath, driver):
-    try:
-        l = driver.find_element_by_xpath(xpath)
-
-        if l.is_enabled():
-            return True
-        else:
-            return False
-    except NoSuchElementException:
-        return False
-
-def get_parent_of_element(xpath, driver):
-    try:
-        l = driver.find_element_by_xpath(xpath)
-        parent = l.find_element_by_xpath("..")
-        return parent
-    except NoSuchElementException:
-        return ""
 
 def get_subelement(xpath, parent):
     try:
@@ -109,6 +73,3 @@ def wait_for_element_to_be_clickable(name, xpath, driver):
         return True
     except TimeoutException:
         return False
-
-def element_is_displayed(xpath, driver):
-    return driver.find_element_by_xpath(xpath).is_displayed()
