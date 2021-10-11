@@ -173,7 +173,7 @@ def check_standard_item_stock(driver):
             try:
                 l.info("Item is in-stock!")
                 if verify_price_within_limit(driver):
-                    return True
+                    return False
                 time.sleep(randint(MIN_DELAY, MAX_DELAY))
                 driver.refresh()
                 continue
@@ -182,7 +182,7 @@ def check_standard_item_stock(driver):
                 driver.refresh()
                 continue
             
-    return False
+    return True
 
 def verify_wishlist_item_price(product):
     price = browser.get_subelement(".//*[@class='a-price-whole']", product).text
