@@ -4,6 +4,7 @@ import os
 import sys
 from logger import logger as l
 
+
 def call_login(driver):
     try:
         functions.login(driver)
@@ -15,9 +16,11 @@ def call_login(driver):
     finally:
         return driver
 
+
 def run_checkout(driver):
     functions.add_to_cart(driver)
     functions.place_order(driver)
+
 
 if __name__ == '__main__':
     driver = browser.get_driver()
@@ -25,7 +28,7 @@ if __name__ == '__main__':
 
     try:
         done = False
-        while(not done):
+        while (not done):
             try:
                 in_stock = functions.check_item_stock(driver)
 

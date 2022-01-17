@@ -5,7 +5,6 @@ import browser
 from random import randint
 from dotenv import load_dotenv
 from logger import logger as l
-from amazoncaptcha import AmazonCaptcha
 from selenium.common.exceptions import NoSuchElementException
 
 load_dotenv(verbose=True)
@@ -20,7 +19,7 @@ MAX_PRICE = float(os.environ.get('MAX_PRICE', None))
 SHOP_URL = os.environ.get('SHOP_URL', None)
 MIN_DELAY = float(os.environ.get('MIN_DELAY', None))
 MAX_DELAY = float(os.environ.get('MAX_DELAY', None))
-RUNS_BEFORE_AGENT_SWITCH = int(os.environ.get('RUNS_BEFORE_AGENT_SWITCH', None)) 
+RUNS_BEFORE_AGENT_SWITCH = int(os.environ.get('RUNS_BEFORE_AGENT_SWITCH', None))
 
 
 # is beeing called for logging you in to Amazon
@@ -28,8 +27,8 @@ def login(driver):
     l.info('Attempting to sign-in')
     driver.get(SHOP_URL)
 
-    if(browser.element_exists_id('captchacharacters', driver) or browser.element_exists_id('image-captcha-section', driver)):
-        validate_captcha(driver)
+    if browser.element_exists_id('captchacharacters', driver) or browser.element_exists_id('image-captcha-section',
+                                                                                           driver):
         driver.get(SHOP_URL)
 
     driver.find_element_by_id("nav-link-accountList").click()
@@ -37,7 +36,9 @@ def login(driver):
     driver.find_element_by_id('continue').click()
     driver.find_element_by_id('ap_password').send_keys(PASSWORD)
     driver.find_element_by_id('signInSubmit').click()
-    l.info('Successfully signed-in as: {}'.format(driver.find_element_by_id("nav-link-accountList").text.split(' ')[1].split('\n')[0]))
+    l.info('Successfully signed-in as: {}'.format(
+        driver.find_element_by_id("nav-link-accountList").text.split(' ')[1].split('\n')[0]))
+
 
 # keeps refreshing until Item is in Stock, seller is your seller and its price is lower then your max price
 def check_item_stock(driver):
@@ -46,18 +47,9 @@ def check_item_stock(driver):
     else:
         return check_standard_item_stock(driver)
 
-# solve amazon captcha
-def validate_captcha(driver):
-    time.sleep(1)
-    l.info("Solving CAPTCHA")
-    captcha = AmazonCaptcha.fromdriver(driver)
-    solution = captcha.solve()
-    driver.find_element_by_id('captchacharacters').send_keys(solution)
-    time.sleep(1)
-    driver.find_element_by_class_name('a-button-text').click()
-    time.sleep(1)
 
-#checks if the item price is in your price range
+
+# checks if the item price is in your price range
 def verify_price_within_limit(driver):
     try:
         price = driver.find_element_by_id('priceblock_ourprice').text
@@ -67,14 +59,15 @@ def verify_price_within_limit(driver):
 
     price = get_clean_price(price)
 
-    if price >= MAX_PRICE: #replace price characters to look like this (eg. 1420.99) (no money symbol, no thousands seperator and '.' as a Cent seperator)
+    if price >= MAX_PRICE:  # replace price characters to look like this (eg. 1420.99) (no money symbol, no thousands seperator and '.' as a Cent seperator)
         l.info('Too Expensive.')
         return False
 
     l.info('Price is in range')
     return True
 
-#gets clean price value to compare with max price value
+
+# gets clean price value to compare with max price value
 def get_clean_price(price):
     l.info(f"getting clean price: {price}")
     price = price.replace('', '')
@@ -83,13 +76,14 @@ def get_clean_price(price):
     if '€' in price:
         price = price.replace('€', '')
 
-    price = price[ : -3] 
+    price = price[: -3]
 
     numeric_filter = filter(str.isdigit, price)
     price = "".join(numeric_filter)
-    
+
     l.info(f"clean price: {price}")
     return float(price)
+
 
 # adds the item to our cart
 def add_to_cart(driver):
@@ -99,7 +93,8 @@ def add_to_cart(driver):
     l.info("Attempting to add to cart")
     try:
         driver.find_element_by_id("add-to-cart-button").click()
-        browser.wait_for_element_to_be_clickable("no warranty", "//input[@aria-labelledby='attachSiNoCoverage-announce']", driver)
+        browser.wait_for_element_to_be_clickable("no warranty",
+                                                 "//input[@aria-labelledby='attachSiNoCoverage-announce']", driver)
     except:
         try:
             # sometimes, amazon has a box called "Other Sellers on Amazon"
@@ -134,6 +129,7 @@ def add_to_cart(driver):
     l.info("Successfully added to cart")
     driver.get(CART_URL)
 
+
 def standard_place_order(driver):
     # Purchases the item using default settings
     l.info("Proceeding to checkout")
@@ -141,7 +137,7 @@ def standard_place_order(driver):
         driver.find_element_by_id("sc-buy-box-ptc-button").click()
         l.info("Placing the order")
         count = 0
-        while( count != 3 ):
+        while (count != 3):
             try:
                 driver.find_element_by_id("submitOrderButtonId").click()
                 l.success("Successfully placed order!")
@@ -155,8 +151,9 @@ def standard_place_order(driver):
 
     except BaseException as err:
         l.error("Failed to proceed to checkout: {}".format(err))
-    
+
     raise Exception("Failed to complete checkout")
+
 
 def check_standard_item_stock(driver):
     l.info("Refreshing page")
@@ -181,8 +178,9 @@ def check_standard_item_stock(driver):
                 time.sleep(randint(MIN_DELAY, MAX_DELAY))
                 driver.refresh()
                 continue
-            
+
     return True
+
 
 def verify_wishlist_item_price(product):
     price = browser.get_subelement(".//*[@class='a-price-whole']", product).text
@@ -191,11 +189,12 @@ def verify_wishlist_item_price(product):
     numeric_filter = filter(str.isdigit, price)
     price = "".join(numeric_filter)
 
-    if float(price) >= MAX_PRICE: 
+    if float(price) >= MAX_PRICE:
         l.info('Too Expensive: {}'.format(product.text.split('\n')[0]))
         return False
-    
+
     return True
+
 
 def wishlist_stock_check(driver):
     # checks if any of the products in wishlist is in stock
@@ -213,7 +212,9 @@ def wishlist_stock_check(driver):
                     l.info("price is in range")
                     l.info("adding to cart")
                     product.find_element_by_xpath(".//*[@data-action='add-to-cart']").click()
-                    browser.wait_for_element_to_be_clickable("no warranty", "//*[@id='attachSiNoCoverage' or @aria-label='Close']", driver)
+                    browser.wait_for_element_to_be_clickable("no warranty",
+                                                             "//*[@id='attachSiNoCoverage' or @aria-label='Close']",
+                                                             driver)
                     l.info("added to cart")
                     time.sleep(0.5)
                     driver.get(CART_URL)
@@ -230,18 +231,24 @@ def wishlist_stock_check(driver):
             continue
     return True
 
+
 def place_order(driver):
     if 'wishlist' in ITEM_URL:
         return wishlist_place_order(driver)
     else:
         return standard_place_order(driver)
 
+
 def wishlist_place_order(driver):
     # wishlist checkout function
     l.info('checking out item')
     try:
-        browser.wait_for_element_to_be_clickable("checkout", "//input[@aria-labelledby='orderSummaryPrimaryActionBtn-announce']", driver)
-        browser.wait_for_element_to_be_clickable("checkout", "//input[@aria-labelledby='orderSummaryPrimaryActionBtn-announce']", driver)
+        browser.wait_for_element_to_be_clickable("checkout",
+                                                 "//input[@aria-labelledby='orderSummaryPrimaryActionBtn-announce']",
+                                                 driver)
+        browser.wait_for_element_to_be_clickable("checkout",
+                                                 "//input[@aria-labelledby='orderSummaryPrimaryActionBtn-announce']",
+                                                 driver)
 
         if browser.wait_for_element_to_be_clickable("checkout", "//input[@name='placeYourOrder1']", driver):
             l.success("Successfully placed order!")
@@ -250,5 +257,5 @@ def wishlist_place_order(driver):
 
     except BaseException as err:
         l.error("Failed to proceed to checkout: {}".format(err))
-    
+
     raise Exception("Failed to complete checkout")
