@@ -18,7 +18,7 @@ Things to check for on Amazon/potential edge cases:
 
 Requirements: 
 --- 
-* Python 3 
+* Python 3.9 
 * Python modules in `requirements.txt` 
 * [Google Chrome](https://support.google.com/chrome/answer/95346?hl=en&co=GENIE.Platform%3DDesktop)
 * [WebDriver for the specific Chrome version](https://sites.google.com/chromium.org/driver/downloads?authuser=0) in same directory
@@ -39,7 +39,7 @@ Requirements:
 
 ## Requirements
 
- * install [Python 3](https://www.python.org/downloads/release/python-397/)
+ * install [Python 3.9](https://www.python.org/downloads/release/python-397/)
  ```
  py -m pip install -r requirements.txt
  ```
