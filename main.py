@@ -24,7 +24,7 @@ def run_checkout(driver):
 
 if __name__ == '__main__':
     driver = browser.get_driver()
-    driver = call_login(driver)
+    functions.accept(driver)
 
     try:
         done = False

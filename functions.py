@@ -27,8 +27,7 @@ def login(driver):
     l.info('Attempting to sign-in')
     driver.get(SHOP_URL)
 
-    if browser.element_exists_id('captchacharacters', driver) or browser.element_exists_id('image-captcha-section',
-                                                                                           driver):
+    if browser.element_exists_id('captchacharacters', driver) or browser.element_exists_id('image-captcha-section',driver):
         driver.get(SHOP_URL)
 
     driver.find_element_by_id("nav-link-accountList").click()
@@ -40,6 +39,13 @@ def login(driver):
         driver.find_element_by_id("nav-link-accountList").text.split(' ')[1].split('\n')[0]))
 
 
+def accept(driver):
+    l.info('clicking accept button')
+    driver.get(ITEM_URL)
+    if browser.element_exists_id('sp-cc-accept', driver):
+        driver.find_element_by_id('sp-cc-accept').click()
+
+
 # keeps refreshing until Item is in Stock, seller is your seller and its price is lower then your max price
 def check_item_stock(driver):
     if 'wishlist' in ITEM_URL:
@@ -48,18 +54,17 @@ def check_item_stock(driver):
         return check_standard_item_stock(driver)
 
 
-
 # checks if the item price is in your price range
 def verify_price_within_limit(driver):
     try:
-        price = driver.find_element_by_id('priceblock_ourprice').text
+        price = driver.find_element_by_xpath("//span[@class='a-price-whole']").text
     except Exception:
         l.error('Error verifying price: No Price shown')
         return False
 
-    price = get_clean_price(price)
+    # price = get_clean_price(price)
 
-    if price >= MAX_PRICE:  # replace price characters to look like this (eg. 1420.99) (no money symbol, no thousands seperator and '.' as a Cent seperator)
+    if float(price) >= MAX_PRICE:  # replace price characters to look like this (eg. 1420.99) (no money symbol, no thousands seperator and '.' as a Cent seperator)
         l.info('Too Expensive.')
         return False
 
@@ -136,11 +141,19 @@ def standard_place_order(driver):
     try:
         driver.find_element_by_id("sc-buy-box-ptc-button").click()
         l.info("Placing the order")
+        try:
+            driver.find_element_by_id('ap_email').send_keys(MAIL)
+            driver.find_element_by_id('continue').click()
+            driver.find_element_by_id('ap_password').send_keys(PASSWORD)
+            driver.find_element_by_id('signInSubmit').click()
+        except:
+            l.info('cannot login')
         count = 0
         while (count != 3):
             try:
                 driver.find_element_by_id("submitOrderButtonId").click()
-                l.success("Successfully placed order!")
+                l.info("Successfully placed order!")
+                time.sleep(3)
                 return
             except BaseException as err:
                 count += 1
@@ -252,6 +265,7 @@ def wishlist_place_order(driver):
 
         if browser.wait_for_element_to_be_clickable("checkout", "//input[@name='placeYourOrder1']", driver):
             l.success("Successfully placed order!")
+            time.sleep(3)
             return
         raise Exception("Failed to find submit order button")
 
