@@ -38,7 +38,7 @@ Requirements:
 ---
 
 ## Requirements
-
+ * install chromedriver
  * install [Python 3.9](https://www.python.org/downloads/release/python-397/)
  ```
  py -m pip install -r requirements.txt
